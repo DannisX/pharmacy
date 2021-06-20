@@ -1,19 +1,23 @@
 import React from 'react'
-import {Route, Switch} from 'react-router-dom'
-import PropTypes from 'prop-types'
+import {Route} from 'react-router-dom'
+// import PropTypes from 'prop-types'
 
 import { routes } from '../../router'
 
+import RouteWithSubRoute from '../RouteWithSubRoute'
 const Main = ()=>{
 
-    return (
-        <Switch>
-            {
-                routes.map(item=>{
-                    return (<Route path={item.to} component={item.component}></Route>)
-                })
-            }
-        </Switch>
+    return (<main>
+        {
+            routes.map(route=>{
+                 if(route.to === '/'){
+                    return (<Route path={route.to} exact  render={()=>(<route.component></route.component>) } key={route.component}></Route>)
+                }else{
+                    return (<RouteWithSubRoute {...route} key={route.component}></RouteWithSubRoute>)
+                }
+            })
+        }
+    </main>
     )
 }
 

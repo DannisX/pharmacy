@@ -1,0 +1,21 @@
+{
+  "name": "pharmacy-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "koa": "^2.13.1",
+    "koa-route": "^3.2.0",
+    "koa-router": "^10.0.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-async-to-generator": "^7.14.5"
+  }
+}

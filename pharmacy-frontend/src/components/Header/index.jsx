@@ -1,14 +1,14 @@
 import React from 'react'
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 import {Link} from 'react-router-dom'
 import {Menu} from 'antd'
-
+import header from './index.module.css'
 // 路由配置
 import { routes } from '../../router'
 const {SubMenu} = Menu;
 const Header = ()=>{
     return (
-        <Menu mode="horizontal">
+        <Menu mode="horizontal" className={header.indent}>
             {
                 routes.map(item=>{
                     if(item.children){
@@ -23,6 +23,10 @@ const Header = ()=>{
                                 })
                             }
                         </SubMenu>)
+                    }else if(item.component ==='Login' || item.component === 'Register'){
+                            return( <Menu.Item key={item.component} className='fr'>
+                                <Link to={item.to}>{item.title}</Link>
+                            </Menu.Item>)   
                     }else{
                         return( <Menu.Item key={item.component}>
                             <Link to={item.to}>{item.title}</Link>
