@@ -10,10 +10,18 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "joi": "^14.0.4",
     "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
     "koa-route": "^3.2.0",
     "koa-router": "^10.0.0",
-    "morgan": "^1.10.0"
+    "koa-uuid": "^1.2.0",
+    "md5": "^2.3.0",
+    "moment": "^2.29.1",
+    "morgan": "^1.10.0",
+    "mysql": "^2.18.1",
+    "node-uuid": "^1.4.8",
+    "nodemailer": "^6.6.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-async-to-generator": "^7.14.5"

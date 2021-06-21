@@ -2,11 +2,13 @@
 const router = require('koa-router')();
 // 引入路由处理程序
 const UserCtrl = require('../controller/User')
+// 引入数据验证处理程序
+const UserValidator = require('../validator/User')
 
 
 
 // 注册=>验证数据正确性=>验证用户状态=>生成验证邮件=>发送验证邮件=>通知已经发送邮件
-router.post('/users/register', UserCtrl.register);
+router.post('/users/register', UserValidator.register, UserCtrl.register);
 // 登录
 router.post('/users/login', UserCtrl.login);
 // 获取当前用户信息

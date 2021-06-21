@@ -1,6 +1,8 @@
 module.exports = () => {
     return async (ctx, next) => {
-        console.log(`${Date.now()}  ${ctx.request.method}  ${ctx.request.url}`);
+        let start = Date.now();
         await next()
+        let interval = Date.now() - start;
+        console.log(`${ctx.request.method}  ${ctx.request.url}  ---${interval}ms`);
     }
 }
