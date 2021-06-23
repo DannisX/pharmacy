@@ -14,6 +14,12 @@ const path = require('path')
 const bodyparser = require('koa-bodyparser')
 // 引入路由
 const router = require('./router')
+// 配置引入
+const { redis_config, port: PORT } = require('./config')
+// 将session保存至redis模块
+const Store = require('./utils/session_redis')
+// session操作模块，可以配置操作session
+const session = require('koa-session2')
 // 创建应用程序
 const app = new Koa();
 // ======================================================================中间件使用============================================================
@@ -22,12 +28,17 @@ const app = new Koa();
 app.use(errorHandler)
 // 使用cors模块中的函数解决跨域问题
 app.use(cors())
+// 
+app.use(session({
+    store: new Store(redis_config),
+    maxAge: 1 * 60 * 60 * 1000
+}))
 // 使用logger模块打印日志
 app.use(logger())
 // 使用bodyparser解析表单数据
 app.use(bodyparser())
 // 端口号配置引入
-const PORT = require('./config').port
+
 // 路由使用
 router.prefix('/api')
 app.use(router.routes(), router.allowedMethods());

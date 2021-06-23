@@ -1,62 +1,87 @@
-const { query } = require('../mysql/mysql')
-
-const { findOne, find, insert } = require('../mysql/base')
-
+// const { query } = require('../mysql/mysql')
+// 用户数据处理模块
+const { userIsExists, addUser, updateUserById } = require('../mysql/user')
+// UUID模块：用于生成验证邮件
 const uuid = require('node-uuid')
-// 数据加密模块
-const MD5 = require('../utils/Md5Password')
-
+// 发送邮件模块
 const { sendVerifyEmail } = require('../utils/email')
+// 抛出异常模块
+const userException = require('../Exception/user')
+// 
+const { setRedisItem, getRedisItem } = require('../utils/redis')
 
 exports.register = async (ctx, next) => {
-    try {
-        const sql = `SELECT * FROM user`
 
-        const data = await query(sql, []);
-
-        ctx.body = {
-            message: "/users/register",
-            data
-        }
-    } catch (error) {
-        next(error)
+    const { user } = ctx.request
+    const userInfo = await userIsExists({ user_name: user.name })
+    if (userInfo.errCode === 1001) {
+        // 用户已存在且已被激活过
+        return userException.userExist();
     }
+
+    const emailInfo = await userIsExists({ user_email: user.email })
+    if (emailInfo.errCode === 1004) {
+        // 邮箱已存在且已被激活过
+        return userException.emailExist();
+    }
+    const verify_key = uuid.v1();
+    const data = userInfo.data || emailInfo.data;
+
+    if (data) {
+        // 用户或者邮箱存在，且都没有被激活过，需重新发送验证邮件
+        // 更新用户信息
+        const res = await updateUserById(data.user_id, {
+            user_name: user.name,
+            user_email: user.email
+        })
+        // redis存储验证邮件的验证信息，验证id为user_id,verify_key
+        await setRedisItem(res.user_id, verify_key, 300);
+        // 邮件发送
+        const emailRes = await sendVerifyEmail({
+            user_id: res.user_id,
+            email: res.user_email,
+            verify_key
+        })
+    } else {
+        // 用户和邮箱都不存在，直接添加数据
+        const data = await addUser({
+            user_name: user.name,
+            user_email: user.email,
+            user_password: user.password
+        })
+        // 发邮件
+        const ress = await sendVerifyEmail({
+            user_id: data.user_id,
+            email: data.user_email,
+            verify_key
+        });
+    }
+
+    // 发送邮箱完成，通知
+    ctx.body = {
+        message: "/users/register",
+        MSG: "验证邮件已发送，请点击激活邮件激活你的账户",
+    }
+
 }
 
 exports.login = async (ctx, next) => {
-    try {
-        const data = await find('user', 'user_name', 'DannisX')
-        let salt = uuid.v1();
-        const result = await insert('user', {
-            user_id: uuid.v1(),
-            user_name: "Dan",
-            user_email: "1486177764@qq.com",
-            user_password: await MD5('Claire950305', salt),
-            user_identity: 5,
-            user_province: "湖南省",
-            user_city: "衡阳市",
-            user_area: "衡东县",
-            user_status: 1,
-            salt,
-        })
-        sendVerifyEmail({
-            user_id: "d2e60111-d28e-11eb-b374-49e04d13fb37",
-            eamil: "1486177764@qq.com",
-            verfify_key: "4221d8b75e7f04469a679a47c502d54d"
-        })
-        ctx.body = {
-            message: "/users/login",
-            data,
-            result
-        }
-    } catch (error) {
-        console.log(error);
-        next(error)
+
+    ctx.body = {
+        message: "/users/login"
     }
+
 }
 exports.getUserProfile = async (ctx) => {
     ctx.body = {
-        message: "/getUserProfile"
+        message: "/getUserProfile",
+        // data
+    }
+}
+
+exports.getUserStatus = async (ctx) => {
+    ctx.body = {
+        message: "/getUserStatus"
     }
 }
 exports.addressModify = async (ctx) => {
@@ -77,5 +102,27 @@ exports.emailModify = async (ctx) => {
 exports.passwordmodify = async (ctx) => {
     ctx.body = {
         message: "/password"
+    }
+}
+exports.avatarModify = async (ctx) => {
+    ctx.body = {
+        message: "/avatar"
+    }
+}
+
+exports.freshAccessToken = async (ctx) => {
+    ctx.body = {
+        message: "/refresh_access_token"
+    }
+}
+
+exports.verify = async (ctx) => {
+    const { user_id, verify_key } = ctx.query
+    const data = await getRedisItem(user_id)
+    if (verify_key === data) {
+        await updateUserById(user_id, { user_status: 1 })
+        ctx.redirect(`http://192.168.3.232:8080/login`)
+    } else {
+        return userException.failedVerify()
     }
 }

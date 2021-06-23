@@ -140,6 +140,12 @@ exports.find = async (table, key, value) => {
     })
 }
 
+/**
+ * 
+ * @param {*} table 要插入数据的表格
+ * @param {*} data 要插入的数据，以对象形式传入
+ * @returns 
+ */
 exports.insert = async (table, data) => {
     return new Promise(async (resolve, reject) => {
         if (!table || !data) return reject('缺少参数')
@@ -160,6 +166,7 @@ exports.insert = async (table, data) => {
                 }
                 const sql = `INSERT INTO ${table} (${key}) VALUES (${value}) `
                 const result = await query(sql, values)
+
                 return resolve(result)
             } catch (error) {
                 return reject(error)
